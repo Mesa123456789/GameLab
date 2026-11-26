@@ -74,3 +74,39 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# === UE 5.6 + Visual Studio / IDE + 2-Dev Workflow ===
+
+# Visual Studio upgrade & IntelliSense leftovers
+UpgradeLog*.htm
+Backup*/
+_UpgradeReport_Files/
+*.ipch
+*.tlog
+*.lastbuildstate
+*.db
+*.VC.VC.opendb
+Browse.VC.*
+
+# UE Live Coding, debug symbols, crash dumps & temp logs
+*.pdb
+*.target
+*.modules
+*.patch_*
+*.dmp
+*.stackdump
+*.log
+*.tmp
+
+# Per-developer scratch content & plugin caches
+Content/Developers/
+Plugins/**/DerivedDataCache/*
+Plugins/**/Saved/*
+
+# Local IDE & OS files
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
