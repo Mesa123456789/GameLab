@@ -6,13 +6,13 @@ P-01 Single Player ไม่มี interface ที่ต้องสร้า�
 
 ## ส่งต่อการเชื่อมแบบผู้เล่นเดียว
 
-สถานะ **ยังไม่ได้เชื่อม Player จริงกับ Cleaning** · Player อยู่บน `PlayerSystem` ที่ `C:/Users/masap/GameLab` และ Cleaning อยู่บน `CleaningSystem` ที่ `C:/Users/masap/GameLab-Cleaning` ให้เมษากับ Git Manager จัดการส่งต่อ revision ก่อนประกอบร่วม
+**IMPLEMENTED - PENDING MANUAL TEST** · `CleaningSystem` ฐาน `6a4f7e0` · ใช้ `/Game/ScrubbyBoo/Maps/Lvl_Test_Cleaning`
 
-- **Player** `/Game/ScrubbyBoo/Blueprints/Player/BP_PlayerFoundation` เป็นเจ้าของการจับ/ปล่อยผ่าน `TryGrab`, `ReleaseGrab` และ `UpdateGrabTargets` `GetLeftGrabContact` และ `GetRightGrabContact` คืน `HasContact` และ `WorldContact` ให้ `/Game/ScrubbyBoo/Blueprints/Player/ABP_PlayerGrabIK` ใช้ในงานแสดงท่าจับเท่านั้น จุด IK ไม่ใช่ตัวแทนสถานะผู้ถือหรือเป้าหมายทำความสะอาด
-- **Cleaning** `/Game/ScrubbyBoo/Blueprints/Cleaning/BP_CleaningTool` เป็นฐานของ `BP_Mop`, `BP_CobwebBroom` และ `BP_GarbageBag` `BP_Stain`, `BP_Cobweb` และ `BP_Garbage` เป็นเป้าหมายต้นแบบ ใช้ `/Game/ScrubbyBoo/Maps/Lvl_Test_Cleaning` กับ `BP_CleaningTestPawn` และ `BP_CleaningTestGameMode` ในโฟลเดอร์ Cleaning เพื่อทดสอบแยก
-- **หยิบ/ปล่อย** ใช้ `TryGrab` ที่สำเร็จและเส้นทางปล่อยจาก `ReleaseGrab` เป็นจุดต่อ หลังอัปเดตสถานะมือให้ตรวจ held actor เดิมและปัจจุบัน เมื่อร่าง `BPI_PlayerInteractable` ได้รับอนุมัติ ให้ส่ง `NotifyHolderChanged(PreviousHolder, NewHolder)` ไปยัง held actor เมื่อมีมือแรกจับหรือมือสุดท้ายปล่อย สองมือที่ใช้ Handle ร่วมกันยังมีผู้ถือคนเดียว ครอบคลุมการหลุดและการทำลายพร็อพด้วย ถ้า actor ถูกทำลายแล้ว ให้ล้างสถานะโดยไม่ส่ง message ไปยัง reference ที่หมดอายุ
-- **ตัวรับใน Cleaning** ให้ `BP_CleaningTool` รับสถานะผู้ถือผ่าน `Pawn`/`Actor` แล้วปรับ `Holder` และ `bCleaningActive` ให้สอดคล้องกับสถานะใหม่ ต้นแบบเดิมใช้ `NotifyGrabbed`/`NotifyReleased` แบบต่อมือและ `HeldHandCount` ให้ adapter ใช้การแจ้งแบบมือแรก/มือสุดท้ายเป็นแหล่งเดียวต่อการเชื่อม ม็อบและไม้กวาดตรวจ overlap ของ `HeadCleanZone` ส่วนถุงให้ `TryInteract(TargetActor, …)` บนของที่ถือเรียก `CollectGarbage(Target)` โดยใช้กติกาของถุง ปุ่ม E ยังอยู่เฉพาะใน fixture ของ Cleaning
-- BPI ที่เสนอ `/Game/ScrubbyBoo/Blueprints/BPI_PlayerInteractable` ยังไม่มี asset และยังต้องอนุมัติ PC-01 งานส่งต่อรอบนี้คงขอบเขตผู้เล่นเดียว
+- `BP_PlayerFoundation` เป็นเจ้าของ input และสถานะต่อมือ `TryOverlapGrab` รับ `OtherActor` และ `OtherComp` จาก collider ของมือที่เหยียด มือแรกบันทึก collision และการจำลองก่อนแนบ มือที่สองใช้ component เดียวกัน และมือสุดท้ายคืนค่าที่บันทึกไว้
+- `BP_CleaningTool` รับ `NotifyGrabbed(NewHolder)` และ `NotifyReleased(OldHolder)` ต่อมือเพื่อเก็บ `Holder` และ `HeldHandCount` อุปกรณ์ใช้ `GripPointA` จัด attachment และส่งตำแหน่ง `GripPointB` ให้ IK ของมือรองผ่าน Player
+- Player ส่ง `SetScrubInput(bHeld)` เมื่อกดหรือปล่อย F และเมื่ออุปกรณ์เริ่มถือหรือโอนมือ เครื่องมือเริ่ม timer 0.1 วินาทีเมื่อถูกถือ มี F ค้าง และ `HeadCleanZone` สัมผัส `CleanTargetClass` เครื่องมือถูคราบหรือหยากไย่ผ่าน `AddCleaningProgress(Amount)` บนเป้าหมาย
+- `BP_GarbageBag` ใช้ E ผ่าน `CollectWithHeldBag` ไปยัง `CollectGarbage(Target)` ตามระยะเดิม ส่วนการถูใช้ `BP_Mop` กับ `BP_Stain` และ `BP_CobwebBroom` กับ `BP_Cobweb`
+- `GetLeftGrabContact` และ `GetRightGrabContact` ยังคง pins `HasContact` และ `WorldContact` สำหรับ `ABP_PlayerGrabIK` สัญญา PC-01 ถัดจากหัวข้อนี้เป็นร่างสำหรับการอนุมัติแยก
 
 ## Asset และความรับผิดชอบ
 

@@ -8,6 +8,33 @@
 
 - งานพัฒนาใช้ [Implementation Only](../../AGENTS.md#workflow--implementation-only) เมษาเป็นผู้ทดสอบ gameplay ตามเกณฑ์ที่อนุมัติ รายการใน backlog ระบุเกณฑ์ของแต่ละ task
 
+## การจับและทำความสะอาดแบบกด F
+
+**IMPLEMENTED - PENDING MANUAL TEST** · 27 พฤศจิกายน 2026 · ผู้เล่นเดียว
+
+- เมษาอนุมัติให้แทนที่ Physics Grab และการเพิ่ม progress ตามความเร็วใน worktree `C:/Users/masap/GameLab-Cleaning` บน branch `CleaningSystem` ฐาน `6a4f7e049cded26412795eb940b88a1afd17f5a9` งานนี้ยังไม่มี review commit
+- แก้ `/Game/ScrubbyBoo/Blueprints/Player/BP_PlayerFoundation`, `/Game/ScrubbyBoo/Blueprints/Cleaning/BP_CleaningTool` และ `/Game/ScrubbyBoo/Blueprints/Cleaning/BP_CobwebBroom` ผ่าน Unreal MCP ผล Compile และ Save ผ่านในการแก้ gameplay ตัวอ่าน IK เดิมใช้ตำแหน่ง Hand Collider และ Grip ของมือรอง
+- มือซ้ายและขวาใช้ Sphere Collider แยกกัน เปิด query overlap ระหว่างเหยียดมือว่าง ใช้รัศมีทดลอง 40 cm จุดเหยียดอยู่หน้ากล้อง 90 cm ต่ำลง 32 cm และแยกซ้ายขวาข้างละ 16 cm อุปกรณ์แนบกับมือหลักโดยอิง `GripPointA` ไม้กวาดตั้ง Pitch ของ Pivot 90° เพื่อให้หัวชี้ไปข้างหน้า
+- เมื่อถือ ปิด Simulate Physics ที่ราก กัน Pawn ที่รากและปิด collision ของ mesh ลูกที่เป็นภาพ หัวทำความสะอาดใช้ `HeadCleanZone` ต่อ มือสุดท้ายคืนการจำลองและค่า collision ที่บันทึกไว้ การโอนมือหลักย้าย attachment ไปมือที่ยังจับอยู่
+- หัวม็อบสัมผัส `BP_Stain` หรือหัวไม้กวาดสัมผัส `BP_Cobweb` ขณะถือเครื่องมือและกด F จึงเดิน timer ทุก 0.1 วินาที การถูสลับตำแหน่งมือ ±3 cm ตามแกนข้าง ค่าทดลอง `CleaningDuration` 4 วินาที ปรับได้ใน Blueprint Details
+- `BP_Stain` และ `BP_Cobweb` เก็บ `CleaningProgress` แบบ Float 0–100 เริ่มที่ 0 และสร้าง Dynamic Material Instance ครั้งเดียว ใช้ `Opacity = 1 - CleaningProgress / 100` เมื่อครบ 100 ซ่อน dirt และปิด collision การปล่อย F การขาด contact และการปล่อยมือสุดท้ายหยุดถูโดยเก็บ progress เดิม ถุงขยะใช้ `CollectGarbage` ผ่าน E ตามเดิม
+- Test level `/Game/ScrubbyBoo/Maps/Lvl_Test_Cleaning` · WASD เดิน · เมาส์มอง · เมาส์ซ้าย/ขวาค้างเพื่อเหยียดและจับ ปล่อยปุ่มเพื่อวาง · F ค้างเพื่อถู · E เก็บขยะเมื่อถือถุง · V ดูตัวละครจากกล้องดีบัก
+
+- งานเก็บส่วนที่เลิกใช้ค้างเมื่อ Unreal MCP แจ้ง `Native MCP session limit reached` กราฟ input และ Tick ของ Physics Grab เดิมถูกถอดแล้ว ฟังก์ชันเดิมกับ `GrabHandleA` และ `GrabHandleB` ยังอยู่ใน asset และไม่มีเส้นทางจาก input ใหม่ กราฟวัดความเร็วหัวเครื่องมือถูกถอดแล้ว
+- ผลข้างต้นเป็น Compile และ Save รอผล gameplay จากเมษา ตัวเชื่อม MCP ค้างก่อนเปิดแท็บ Blueprint สำหรับส่งมอบ
+
+- แก้กราฟหลังใช้ Blueprint Anti-Pasta โหมด Layout (Route) บน `CleaningSystem` ฐาน `6a4f7e0` คืนการเชื่อม 28 จุดใน `BP_CleaningTool` EventGraph ผ่าน Unreal MCP รวมเส้น HeadCleanZone, timer และ progress ตรวจ 107 การเชื่อมกับกราฟก่อนจัดโหนดแล้วตรงกัน ส่วน 69 การเชื่อมที่ตรวจใน `BP_PlayerFoundation` EventGraph ตรงกันอยู่แล้ว Compile และ Save `BP_CleaningTool` ผ่าน เปิด asset ใน `Lvl_Test_Cleaning` แล้ว รอเมษาทดสอบ gameplay
+
+### Checklist ทดสอบการจับและทำความสะอาด
+
+1. ใช้ WASD และเมาส์ ตรวจมุมมองบุคคลที่หนึ่งและกด V ดู Manny ทั้งตัวกับการเหยียดแขนทีละข้าง
+2. เข้าหาวัตถุด้วยมือซ้ายและขวาทีละข้างโดยให้ Hand Collider สัมผัส ลองถือคนละชิ้นและจับชิ้นเดียวสองมือ ปล่อยมือหลักแล้วตรวจว่าอีกมือยังถือ ปล่อยมือสุดท้ายแล้วตรวจฟิสิกส์และ collision
+3. ใช้ม็อบกับคราบพื้นและไม้กวาดกับหยากไย่ กด F ค้าง ตรวจท่าถูและ opacity ที่ลดลง ทดสอบเครื่องมือผิดชนิด ด้ามแตะ dirt และสัมผัสโดยยังไม่กด F
+4. ปล่อย F แยกหัวออก และปล่อยเครื่องมือทีละกรณี ตรวจว่าหยุดทันทีและกลับมาถูต่อจากค่าเดิม เมื่อครบ 100 ตรวจว่า dirt หายและ collision ปิด
+5. ถือถุงขยะแล้วกด E ที่ขยะใกล้ ๆ ตรวจว่าถุงเก็บขยะผ่านการกด E และการสัมผัสอย่างเดียวไม่เก็บ
+
+รายละเอียดต้นแบบด้านล่างเป็นประวัติ ใช้กติกาในหัวข้อนี้สำหรับการทดสอบบน `CleaningSystem`
+
 ## ส่งต่อ Player Prototype
 
 **IMPLEMENTED - PENDING MANUAL TEST** · Single Player · `PlayerSystem` ฐาน `2a8f5504bb27e21e66ad13cd4b215afb19e4bbe2` อยู่ใน working tree ยังไม่มี review commit
@@ -176,22 +203,47 @@ Standalone PIE หนึ่งผู้เล่นเท่านั้น ใ�
 - Compile ล่าสุด: 9 Blueprints ใน Cleaning folder, 0 failed, 0 flagged บันทึก asset และแผนที่แล้ว เปิด `BP_CleaningTool`, `BP_GarbageBag`, `BP_CleaningTestPawn` และ `Lvl_Test_Cleaning` ไว้ใน Editor ของ worktree
 - ก่อน workflow Implementation Only มีผล ได้รันการตรวจ logic ผ่าน MCP ใน PIE ผู้เล่นเดียวแล้ว (ถือ/ไม่ถือ, เครื่องมือผิดชนิด, ปล่อยแล้ว, หนึ่งชิ้นต่อผู้ถือ, สองมือ, overlap ถุงกับขยะ, ปุ่ม G/E ของ test pawn) ผลทุกข้อตรงตามคาด ถือเป็นข้อมูลประกอบ ผล gameplay รอเมษายืนยัน
 
-### ปุ่มควบคุมใน `Lvl_Test_Cleaning` (ค่าต้นแบบชั่วคราว)
+### เชื่อมกับ `BP_PlayerFoundation` · IMPLEMENTED - PENDING MANUAL TEST
 
-WASD/เมาส์ตาม template · **G** หยิบ/วางอุปกรณ์ที่เล็ง · **H** มือที่สองบนอุปกรณ์เดิม · **E** Interact เก็บขยะเมื่อถือถุง
+- เมษาอนุมัติให้ merge `PlayerSystem` (`30c4a0a`) เข้า `CleaningSystem` ได้ merge commit `6a4f7e0` แล้ว build Editor target ของ worktree ผ่าน ส่วน integration ยังไม่ commit
+- `BP_PlayerFoundation` เพิ่ม 3 ฟังก์ชัน โดยไม่แก้ `TryGrab`, `ReleaseGrab`, `UpdateGrabTargets`, กล้อง, IK หรือ body physics
+  - `GetHandleCleaningTool(Handle)` คืน `BP_CleaningTool` จาก component ที่ Physics Handle จับอยู่
+  - `NotifyCleaningToolHand(Handle, bGrabbed)` เรียก `NotifyGrabbed`/`NotifyReleased` บนอุปกรณ์ต่อมือหนึ่งครั้ง
+  - `CollectWithBag(Bag)` trace จาก `FirstPersonCamera` ตาม `GrabDistance` โดยไม่โดนตัวเองและถุง แล้วเรียก `CollectGarbage`
+- EventGraph: แจ้งหยิบหลัง `Set Left/RightGrabLocalContact` และแจ้งปล่อยก่อน `ReleaseGrab` ของเมาส์แต่ละข้าง ปุ่ม **E** (ค่าชั่วคราว) หา `BP_GarbageBag` จากมือซ้ายก่อนแล้วมือขวา ไม่มี Tick ใหม่
+- `Lvl_Test_Cleaning` ใช้ GameMode Override `BP_PlayerFoundationTestGameMode` ลบ `BP_CleaningTestPawn` และ `BP_CleaningTestGameMode` ที่ไม่ใช้แล้ว (ยังอยู่ใน `e7ade44`)
+- Compile: `BP_PlayerFoundation` 0 errors, 0 warnings และ Cleaning folder 7 Blueprints 0 failed บันทึกแล้ว
+- ข้อจำกัด: Player cast ไปยัง `BP_CleaningTool`/`BP_GarbageBag` โดยตรงจนกว่า interface ร่วมจะได้รับอนุมัติ
+
+### Progressive Physical Cleaning · IMPLEMENTED - PENDING MANUAL TEST
+
+- **Dirt** (`BP_Stain`, `BP_Cobweb`): `CleaningProgress` 0–100 (ค่าเริ่มต้น 0) และ `DirtColor` สร้าง Dynamic Material Instance ครั้งเดียวตอน BeginPlay จาก `M_DirtPlaceholder` (`/Game/ScrubbyBoo/Art/Environment/`, Translucent, scalar `Opacity`, vector `DirtColor`) `AddCleaningProgress(Amount)` clamp 0–100 แล้วตั้ง Opacity = 1 − CleaningProgress/100 เฉพาะตอนค่าเปลี่ยน เมื่อถึง 100 ปิด collision และซ่อน actor ปิด `bCanEverTick`
+- **Tool** (`BP_CleaningTool`): เก็บ dirt ที่ `HeadCleanZone` overlap อยู่ใน `CurrentDirt` (เพิ่มตอน BeginOverlap ลบตอน EndOverlap) `UpdateCleaningTimer` เปิด timer แบบ looping ทุก `CleaningInterval` เฉพาะเมื่อถืออยู่และมี dirt สัมผัส และหยุดเมื่อไม่ตรงเงื่อนไข `CleaningTick` วัดการเคลื่อนที่จริงของ `HeadCleanZone` ระหว่างรอบ (ม็อบวัดเฉพาะแนวพื้น XY ไม้กวาดวัด 3 แกน) เมื่อความเร็ว ≥ `MinimumCleaningSpeed` เพิ่ม progress = `CleaningRate` × เวลาที่ผ่านไปจริง progress อยู่บน dirt จึงคงไว้เมื่อหยุด ปล่อย หรือเดินออก ไม่มี Tick
+- **Details** (`Cleaning|Balancing`): `CleaningDuration` 4 s, `CleaningRate` 25 /s, `CleaningInterval` 0.1 s, `MinimumCleaningSpeed` 15 cm/s, `bMeasureFloorSpeedOnly` (ม็อบ true, ไม้กวาด false) ปรับแยกใน `BP_Mop` และ `BP_CobwebBroom` ได้ เมื่อ `CleaningDuration` > 0 ตอน BeginPlay จะคำนวณ `CleaningRate` = 100 / `CleaningDuration` ค่าเริ่มต้นจึงตรงกัน (4 s → 25 /s)
+- ถุงขยะยังเก็บด้วยปุ่ม E เท่านั้น สองมือ: ปล่อยมือหนึ่งยังทำความสะอาดต่อจนปล่อยมือสุดท้าย
+- ระหว่างทำงาน การ compile `BP_GarbageBag` ใหม่ทำให้ input ที่ระบุชนิดเป็น `BP_GarbageBag` ใน `CollectWithBag` ของ `BP_PlayerFoundation` เสีย จึงสร้างฟังก์ชันเชื่อมทั้งสามใหม่ และให้ `CollectWithBag` รับ `Actor` แล้ว cast ภายใน ตรวจแล้วว่า compile Cleaning → Player สลับกันสองรอบผ่านทั้งหมด การ refresh Blueprint ในโฟลเดอร์ Player บันทึก `ABP_PlayerGrabIK` ใหม่ด้วย โดยไม่ได้แก้ logic
+- Compile ล่าสุด: Cleaning 7 Blueprints 0 failed และ `BP_PlayerFoundation` 0 errors, 0 warnings บันทึกแล้ว `Lvl_Test_Cleaning` บันทึกแล้ว ข้อจำกัด: สีของ dirt เป็น placeholder ยังไม่มี texture จริง
+
+### Cleaning Tool Handling (ฝั่งเครื่องมือ) · IMPLEMENTED - PENDING MANUAL TEST · ฝั่ง Player รออนุมัติ
+
+- `BP_CleaningTool` เพิ่ม `GripPointA`, `GripPointB` (Scene Component) และ `GrabAssistCollision` (Capsule) **แก้ไขแล้ว:** เดิมตั้ง preset `UI` ให้บล็อก Visibility ทำให้ line trace ของ `TryGrab` โดน capsule ก่อน capsule เป็น query-only จึงไม่ weld กับ body ฟิสิกส์ `IsSimulatingPhysics` ของ component ที่โดนเป็น false และ `TryGrab` ปฏิเสธการจับ ตอนนี้ตั้ง capsule เป็น `NoCollision` การจับกลับเป็นเหมือนก่อนเพิ่ม capsule การเล็งง่ายขึ้นต้องรอ Sphere Trace ฝั่ง Player (ข้อ 1 ที่รออนุมัติ)
+- ถือมือแรก: `ApplyHeldPhysics` เก็บ angular damping เดิมแล้วตั้ง `HeldAngularDamping` ปล่อยมือสุดท้าย: `RestoreHeldPhysics` คืนค่าเดิม Simulate Physics และ collision คงเดิม ไม่มี Tick
+- ฟังก์ชันให้ Player เรียก: `GetGripLocation(NearLocation)` คืน grip ที่ใกล้จุดเล็ง และ `GetDesiredHoldRotation(ViewRotation)` คืนทิศที่ควรถือ (`OrientationMode` 1 = ม็อบ ด้ามเอียงเข้าหาผู้เล่น `HandleTiltAngle`, 2 = ไม้กวาด ด้ามชี้ตามทิศเล็ง, 0 = ถุง ห้อยตามแรงโน้มถ่วง)
+- Details `Cleaning|Grip`: `HeldAngularDamping` 8, `RotationStrength` 1500, `GrabAssistRadius` 40, `OrientationMode`, `HandleTiltAngle` 15 ตำแหน่ง grip: ม็อบ 10 และ 50 cm ใต้ปลายด้าม, ไม้กวาด 20 และ 70 cm จากปลายด้าม, ถุง ด้านบนใกล้ปากถุง
+- **รออนุมัติแก้ `BP_PlayerFoundation`:** (1) `TryGrab` ใช้ Sphere Trace สำรองเมื่อ line trace พลาด และรับเฉพาะ `BP_CleaningTool` (2) เมื่อจับเครื่องมือ ให้จับที่ `GetGripLocation` และถ้า `bUseAssist` ใช้ `GrabComponentAtLocationWithRotation` กับตั้ง Angular Stiffness ของ handle เป็น `RotationStrength` (3) `UpdateGrabTargets` เดิมตั้ง target rotation จาก `GetDesiredHoldRotation` เฉพาะ handle ที่ถือเครื่องมือ สองมือใช้ handle เดียวกันจึงมี rotation drive เดียว (4) ปล่อยมือสุดท้ายคืนค่า stiffness เดิมของ handle ของทั่วไปยังจับแบบเดิม
+- Compile: Cleaning 7 Blueprints 0 failed, `BP_PlayerFoundation` compile ซ้ำผ่าน (ไม่ได้แก้)
+
+### ปุ่มควบคุมใน `Lvl_Test_Cleaning`
+
+WASD/เมาส์ตาม Player · **เมาส์ซ้าย/ขวา** กดค้างเพื่อจับด้วยมือซ้าย/ขวา ปล่อยปุ่มเพื่อวาง · **E** Interact เก็บขยะเมื่อถือถุง (ค่าชั่วคราว) · **V** กล้อง debug ของ Player
 
 ### Checklist ทดสอบด้วยตนเอง
 
-1. ถือม็อบ (G) เดินให้หัวม็อบผ่านคราบ คราบหายไป ด้ามแตะคราบแล้วไม่หาย
-2. ถือไม้กวาด เงยหน้าให้หัวไม้กวาดแตะหยากไย่ที่ผนังและเพดาน หยากไย่หายไป
-3. ถือถุง เล็งขยะใกล้ ๆ กด E ขยะหายไป เอาถุงไปชนขยะเฉย ๆ ไม่เก็บ
-4. ใช้อุปกรณ์ผิดชนิดกับ dirt แต่ละแบบ ไม่มีผล วางอุปกรณ์ (G) แล้วโยนหรือปล่อยให้ตกใส่ dirt ไม่มีผล
-5. กด H ให้สองมือถือชิ้นเดิม ปล่อยมือหนึ่ง (H) ยังทำงาน ปล่อยมือสุดท้าย (G) หยุดทำงาน
-
-### Integration ที่ค้าง
-
-- Player จริงของ Codex ยังไม่ได้แจ้งอุปกรณ์เมื่อหยิบ/ปล่อย และยังไม่มี Interact ไปยัง held actor จึงยังไม่ได้ทดสอบร่วม ดู [INTERFACES](INTERFACES.md) หัวข้อผลจากต้นแบบ Cleaning Tools
-- Codex ถือของด้วย Physics Handle ส่วน test pawn ใช้ attach ชั่วคราว ต้องให้เมษาทดสอบการถือม็อบ/ไม้กวาดด้วย grab จริงหลังเชื่อม เช่น ความยาว 150–200 cm กับระยะถือ 170 cm
+1. จับม็อบแล้วลากหัวม็อบผ่านคราบ คราบหายไป ด้ามแตะคราบแล้วไม่หาย
+2. จับไม้กวาด เงยหน้าให้หัวไม้กวาดแตะหยากไย่ที่ผนังและเพดาน หยากไย่หายไป
+3. จับถุง เล็งขยะใกล้ ๆ กด E ขยะหายไป เอาถุงไปชนขยะเฉย ๆ ไม่เก็บ
+4. ใช้อุปกรณ์ผิดชนิด ไม่มีผล ปล่อยอุปกรณ์ให้ตกใส่ dirt ไม่มีผล
+5. จับชิ้นเดิมสองมือ ปล่อยมือหนึ่งยังทำงาน ปล่อยมือสุดท้ายหยุดทำงาน จับอุปกรณ์อีกชิ้นด้วยมืออีกข้าง ชิ้นที่สองไม่ทำงาน
 
 ## ผลรีวิวสถาปัตยกรรมโดย Claude Code · รอเมษาตัดสิน
 

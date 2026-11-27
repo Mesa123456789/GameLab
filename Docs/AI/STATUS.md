@@ -1,22 +1,21 @@
 # สถานะงาน AI
 
-อัปเดต 27 พฤศจิกายน 2026 · ส่งต่องาน Player ให้ Claude Code · **IMPLEMENTED - PENDING MANUAL TEST**
+อัปเดต 27 พฤศจิกายน 2026 · การจับและทำความสะอาดแบบผู้เล่นเดียวบน `CleaningSystem` · **IMPLEMENTED - PENDING MANUAL TEST**
 
 | ผู้รับผิดชอบ | งาน | สถานะ |
 | --- | --- | --- |
-| Codex | Player Foundation, Movement, Grab/Hold และ Player/Object Physics ของเมษา | ต้นแบบผู้เล่นเดียวมีการเดินและกล้องเดิม, Physics Grab สองมือ, Physical Animation, กล้องดีบัก V และ Two Bone IK รอเมษาทดสอบด้วยตนเอง |
-| Claude Code | Cleaning Tools, Targets และ Progress | ต้นแบบ Mop, Cobweb Broom, Garbage Bag บน `CleaningSystem` (worktree `GameLab-Cleaning`) **IMPLEMENTED - PENDING MANUAL TEST** Compile ผ่าน ดู [TASKS](TASKS.md#ต้นแบบ-cleaning-tools-mop-cobweb-broom-garbage-bag--27-พฤศจิกายน-2026) |
-| โชต | การพัฒนา C++ และระบบในความรับผิดชอบของโชต | คงขอบเขตเจ้าของเดิม |
-| เมษา | อนุมัติงานและทดสอบ gameplay ทั้งหมด | อนุมัติต้นแบบ Physics Grab ผู้เล่นเดียวสำหรับรอบ 27 พฤศจิกายน |
+| Codex | จับด้วย Hand Collider และเชื่อมการทำความสะอาดแบบกด F | เปลี่ยนเส้นทาง gameplay ใน `BP_PlayerFoundation` และ `BP_CleaningTool` แล้ว รอเมษาทดสอบ |
+| Claude Code | Cleaning Tools, Targets และ Progress | ใช้ Blueprint เครื่องมือและเป้าหมายเดิมใน `CleaningSystem` |
+| โชต | การพัฒนา C++ และระบบในความรับผิดชอบของโชต | ขอบเขตเจ้าของเดิม |
+| เมษา | ทดสอบ gameplay | ใช้ `/Game/ScrubbyBoo/Maps/Lvl_Test_Cleaning` |
 | UI | งาน UI ทุกส่วน | พักไว้ |
 
-## ส่งต่องาน Player และ Cleaning
+## การจับและทำความสะอาดแบบผู้เล่นเดียว
 
-- Player อยู่ที่ `/Game/ScrubbyBoo/Blueprints/Player/` ใช้ `BP_PlayerFoundation`, `BP_PlayerFoundationController`, `BP_PlayerFoundationTestGameMode` และ `ABP_PlayerGrabIK` กับ `/Game/ScrubbyBoo/Maps/Lvl_Test_Player` กดเมาส์ซ้าย/ขวาค้างเพื่อจับ ปล่อยปุ่มเพื่อปล่อยมือ และกด `V` ดู Manny ทั้งตัว
-- ค้างทดสอบมือสัมผัสพร็อพเมื่ออยู่ในระยะแขนและตรวจการคืนฟิสิกส์เมื่อปล่อย `HoldDistance` เดิม 170 cm อาจเกินระยะแขน มุมบุคคลที่หนึ่งซ่อน Manny ทั้งตัวเพื่อกันบังกล้อง งานเชื่อม Cleaning และ Interact ของ Player จริงยังค้าง
-- Cleaning อยู่ที่ `/Game/ScrubbyBoo/Blueprints/Cleaning/` กับ `/Game/ScrubbyBoo/Maps/Lvl_Test_Cleaning` ใน worktree `C:/Users/masap/GameLab-Cleaning` ใช้ fixture แยกจาก Player จริง ดู [แนวทางเชื่อมต่อ](INTERFACES.md#ส่งต่อการเชื่อมแบบผู้เล่นเดียว)
-- `PlayerSystem` อยู่ที่ฐาน `2a8f5504bb27e21e66ad13cd4b215afb19e4bbe2` ไฟล์ต้นแบบยังอยู่ใน working tree ของ `C:/Users/masap/GameLab` และยังไม่มี review commit การเปิด `CleaningSystem` อย่างเดียวจึงไม่เห็นไฟล์ Player ชุดนี้ ดูผล Compile และงานค้างใน [TASKS](TASKS.md#ส่งต่อ-player-prototype)
-- ใช้ [Implementation Only](../../AGENTS.md#workflow--implementation-only) กับงานนี้และงานถัดไป รอเมษายืนยันผลทดสอบก่อนเปลี่ยนสถานะ gameplay
+- ปรับใน worktree `C:/Users/masap/GameLab-Cleaning` บน `CleaningSystem` ฐาน `6a4f7e049cded26412795eb940b88a1afd17f5a9` ยังไม่มี review commit ของงานนี้
+- เมาส์ซ้ายและขวาเหยียดมือและเปิด Hand Collider แยกกันเมื่อมือว่าง วัตถุยึดเพียงกับมือหลักและโอนไปอีกมือเมื่อมือหลักปล่อย ใช้ `GripPointA` จัดอุปกรณ์และ `GripPointB` เป็นเป้า IK ของมือรอง
+- กด F ค้างเพื่อถูเมื่อหัวเครื่องมือสัมผัส dirt ตรงชนิด ม็อบใช้กับคราบพื้น ไม้กวาดใช้กับหยากไย่ ใช้ E เมื่อถือถุงเพื่อเก็บขยะ
+- ดูรายการ asset ผล Compile และรายการทดสอบใน [TASKS](TASKS.md#การจับและทำความสะอาดแบบกด-f) และดูสัญญาที่ใช้งานใน [INTERFACES](INTERFACES.md#ส่งต่อการเชื่อมแบบผู้เล่นเดียว)
 
 ## Unreal MCP ที่ตรวจแล้ว
 
