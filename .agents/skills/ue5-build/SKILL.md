@@ -7,24 +7,24 @@ description: >-
 
 # UE 5.6 Build & Verification Workflow (`ScrubbyBooGame`)
 
-Use these exact commands on Windows (PowerShell) from the workspace root `e:\!_Chotayakorn_ICAT\GameLab`.
+Use these exact commands on Windows (PowerShell) from the workspace root `e:\Chotayakorn_ICAT\GameLab`.
 
 ## Commands
 
-> Note: Invoke `UnrealBuildTool.exe` directly from PowerShell rather than `Build.bat` because `cmd.exe` delayed expansion strips the `!` in `e:\!_Chotayakorn_ICAT\...`. Pass `-NoUBA -NoUBALocal` on Editor builds because the Unreal Build Accelerator (UBA) local executor can hang `cl.exe` in this environment.
+> Note: Invoke `UnrealBuildTool.exe` directly from PowerShell and pass `-NoUBA -NoUBALocal` on Editor builds because the Unreal Build Accelerator (UBA) local executor can hang `cl.exe` in this environment.
 
 ### 1. Build Editor Target (Default Verification)
 Run after any C++ `.h` or `.cpp` edit to verify UHT (UnrealHeaderTool) and MSVC compilation:
 
 ```powershell
-& "C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" ScrubbyBooGameEditor Win64 Development -Project="e:\!_Chotayakorn_ICAT\GameLab\ScrubbyBooGame.uproject" -WaitMutex -FromMsBuild -NoUBA -NoUBALocal
+& "C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" ScrubbyBooGameEditor Win64 Development -Project="e:\Chotayakorn_ICAT\GameLab\ScrubbyBooGame.uproject" -WaitMutex -FromMsBuild -NoUBA -NoUBALocal
 ```
 
 ### 2. Regenerate Visual Studio Project Files
 Run whenever you add or remove `.h`/`.cpp` files or edit `Source/ScrubbyBooGame/ScrubbyBooGame.Build.cs`:
 
 ```powershell
-& "C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" -ProjectFiles -Project="e:\!_Chotayakorn_ICAT\GameLab\ScrubbyBooGame.uproject" -Game -Rocket -Progress
+& "C:\Program Files\Epic Games\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" -ProjectFiles -Project="e:\Chotayakorn_ICAT\GameLab\ScrubbyBooGame.uproject" -Game -Rocket -Progress
 ```
 
 ## Live Coding vs. Full Build Guidance

@@ -14,15 +14,15 @@
   - `GameplayStateTree`
 - **Current Source Layout** (under `Source/ScrubbyBooGame/`):
   - `Core/` *(protected)* — Holds `AScrubbyBooGameCharacter`, `AScrubbyBooGameGameMode`, `AScrubbyBooGamePlayerController`, `AScrubbyBooGameCameraManager`
-  - `Multiplayer/` — Scaffolded and ready for sessions, lobby, and replication utilities
+  - `Multiplayer/` — Holds `ScrubbySessionTypes.h`, `UScrubbySessionSubsystem`, `AScrubbyLobbyGameMode`, `AScrubbyLobbyGameState`, `AScrubbyLobbyPlayerState`, `AScrubbyLobbyPlayerController`
   - `Shared/` — Scaffolded and ready for thin, additive `UInterface`s, `GameplayTags`, and shared structs/enums
   - `Systems/<Feature>/` — Scaffolded (`Systems/`) and ready for self-contained feature folders (e.g., `Systems/Grab/`, `Systems/Extraction/`, `Systems/Health/`, `Systems/Inventory/`, `Systems/AI/`). Always `#include` relative to module root (e.g., `#include "Core/..."` or `#include "Systems/Grab/GrabComponent.h"`) so `ScrubbyBooGame.Build.cs` does not require edits per folder.
   - Reference variants: `Variant_Horror/`, `Variant_Shooter/`
-- **Pending Networking Modules** (to add to `ScrubbyBooGame.Build.cs` when starting multiplayer implementation):
+- **Active Networking Modules** (`ScrubbyBooGame.Build.cs` + `Config/DefaultEngine.ini`):
   - `NetCore`
-  - `OnlineSubsystem`
+  - `OnlineSubsystem` (`DefaultPlatformService=Null` active for fast solo/LAN PIE testing; Steam AppID `480` block commented in `DefaultEngine.ini`)
   - `OnlineSubsystemUtils`
-  - *(Later)* Steam (`OnlineSubsystemSteam`) or Epic Online Services (`OnlineSubsystemEOS`) plugin + module configuration.
+  - *(Later)* Enable `OnlineSubsystemSteam` plugin (or EOS) and uncomment Steam config when playtesting over the internet.
 
 ---
 
@@ -30,7 +30,8 @@
 
 | System | C++ Base Class | Owner & Replication Role | Planned BP Subclass / Usage | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Session Management** | `UScrubbySessionSubsystem` (`UGameInstanceSubsystem`) | Local client/host instance; creates/finds/joins sessions and triggers `ServerTravel` / `ClientTravel`. | Called from Lobby/Main Menu UMG widgets via `BlueprintCallable` functions & async/delegate callbacks. | Planned |
+| **Session Management** | `UScrubbySessionSubsystem` (`UGameInstanceSubsystem`) | Local client/host instance; creates/finds/joins/locks sessions, handles Direct IP join & network failures, opens Lobby `?listen`. | Called from `WBP_MainMenu` & `WBP_Lobby` UMG widgets via `BlueprintCallable` functions & delegates. | Implemented (`feat/multiplayer-session`) |
+| **Walkable 3D Lobby** | `AScrubbyLobbyGameMode`, `AScrubbyLobbyGameState`, `AScrubbyLobbyPlayerState`, `AScrubbyLobbyPlayerController` | Server-authoritative lobby slots (default max 6), Ready-Up sync, Host solo/all-ready start gate, `ServerTravel` + late-join lock (`PreLogin`). | `BP_LobbyGameMode`, `BP_LobbyGameState`, `BP_LobbyPlayerState`, `BP_LobbyPlayerController` in `Content/ScrubbyBoo/Blueprints/Multiplayer/`. | Implemented (`feat/multiplayer-session`) |
 | **Match Rules & Spawning** | `AScrubbyGameMode` (`AGameModeBase` / `AGameMode`) | Server-only; manages player join/respawn, round transitions, quota evaluation, seamless travel. | `BP_ScrubbyGameMode` sets default Pawn, PlayerController, GameState, PlayerState, and level rules. | Planned |
 | **Shared Match State** | `AScrubbyGameState` (`AGameStateBase`) | Server-authoritative, replicated to all; holds current level, match phase, quota target, extracted value, and delegates (`OnRep_*`). | `BP_ScrubbyGameState` / HUD widgets bind to `OnQuotaUpdated`, `OnPhaseChanged`, etc. | Planned |
 | **Player Identity & Status** | `AScrubbyPlayerState` (`APlayerState`) | Server-authoritative, replicated to all; holds alive/dead state, health/stamina summary, upgrades, display name. | `BP_ScrubbyPlayerState` / Scoreboard & Spectate UI bind to `OnAliveStateChanged`, `OnUpgradesChanged`. | Planned |
@@ -60,4 +61,4 @@ Before marking any multiplayer feature done, verify in Unreal Editor Play-In-Edi
 
 > Record short entries here as C++ multiplayer milestones are handed off to Blueprint.
 
-- *No multiplayer milestones implemented yet (template baseline).*
+- **`feat/multiplayer-session`**: Added `UScrubbySessionSubsystem` (Create/Find/Join/Direct IP/Leave/Lock + error delegates) and walkable 3D Lobby framework (`AScrubbyLobbyGameMode`, `AScrubbyLobbyGameState`, `AScrubbyLobbyPlayerState`, `AScrubbyLobbyPlayerController`) with LAN (`Null`) default and Steam-ready hooks.
